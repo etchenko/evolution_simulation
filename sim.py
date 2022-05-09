@@ -5,94 +5,96 @@ from datetime import datetime
 
 from items import organism, food
 
+FOOD_ENERGY = 100
+BIRTH_COST = 75
+START_ENERGY = 50
+food_type = 1
+TYPE_2 = 200
+TYPE_3 = 100
+FOOD_SPARSE = .1
+
+
 class simulation:
-    def __init__(self, p, GENE_LENGTH, ELITISM, MUTATION_RATE, GENERATION_LENGTH, ORG_RADIUS, FOOD_RADIUS, XRANGE, YRANGE, ORGS, FOOD_COUNT, HEIGHT, WIDTH):
+    def __init__(self, settings):
         # Create array of food and organisms
-        self.GENE_LENGTH, self.ELITISM, self.MUTATION_RATE = GENE_LENGTH, ELITISM, MUTATION_RATE
-        self.GENERATION_LENGTH, self.ORG_RADIUS, self.FOOD_RADIUS = GENERATION_LENGTH, ORG_RADIUS, FOOD_RADIUS
-        self.XRANGE, self.YRANGE, self.HEIGHT, self.WIDTH = XRANGE, YRANGE, HEIGHT, WIDTH
-        self.ORGS, self.FOOD_COUNT = ORGS, FOOD_COUNT
+        self.settings = settings
         self.organisms = pyglet.graphics.Batch()
         self.orgs = []
         self.foods = pyglet.graphics.Batch()
         self.f_array = []
         # Add organisms to the simulation
-        for i in range(self.ORGS):
-            genes = ''.join(random.choices(string.ascii_uppercase, k = self.GENE_LENGTH))
-            self.orgs.append(organism(xrange = self.XRANGE, yrange = self.YRANGE, batch = self.organisms, genome = genes))
-        
-        for i in range(self.FOOD_COUNT):
-            self.f_array.append(food(self.XRANGE,self.YRANGE, self.foods, energy = 1))
-        
-        self.food_prob = p
-        self.count = 0
-        self.generation = 1
-        self.start = datetime.now()
-        self.change_stats()
-    
+        self.reset()
+
+    '''
+    Reset the simulation
+    '''
+    def reset(self):
+        self.orgs = []
+        self.f_array = []
+        for i in range(self.settings['orgs']):
+            genes = ''.join(random.choices(string.ascii_uppercase, k = self.settings['gene_length']))
+            org_settings = {
+                'start': (self.settings['xrange'][0], self.settings['xrange'][1], 
+                        self.settings['yrange'][0], self.settings['yrange'][1]),
+                'xrange': self.settings['xrange'], 'yrange': self.settings['yrange'],
+                'batch': self.organisms, 'genome': genes, 'energy': START_ENERGY
+            }
+            self.orgs.append(organism(org_settings))
+        for i in range(self.settings['food_count']):
+            self.generate_food(food_type)
+
     '''
     Draw the simulation
     '''
     def draw(self):
         self.organisms.draw()
         self.foods.draw()
-        self.label.draw()
-        self.time.draw()
-
 
     '''
     Update the simulation state at every time step
     '''
     def update(self, dt):
-        #state = [[0 for i in range(self.HEIGHT - 300)] for j in range(self.WIDTH - 200)]
+        '''
+        state = [[0 for i in range(self.HEIGHT - 300)] for j in range(self.WIDTH - 200)]
         for fo in self.f_array:
             x = round(fo.x)
             y = round(fo.y)
-            #state[y][x] = 1
+            state[y][x] = 1
         for org in self.orgs:
             x = round(org.x)
             y = org.y
             #state[y][x] = 2
+        '''
 
         # Update the position of the organisms
-        for organism in self.orgs:
-            organism.update(dt, dt)
+        for org in self.orgs:
+            org.update(dt)
         
         # Have the organisms eat the food
+        count = 0
         for f in self.f_array:
             for org in self.orgs:
                 if f.x - 4 < org.x < f.x + 4 and  f.y - 4 < org.y < f.y + 4:
                     org.energy += f.energy
                     self.f_array.remove(f)
                     del(f)
+                    count+= 1
                     break
+        for i in range(count):
+            self.generate_food(food_type)
         
-        # Generate new food
-        rand = random.random()
-        if rand < self.food_prob:
-            self.f_array.append(food(self.XRANGE,self.YRANGE, self.foods, energy = 1))
-        self.count += 1
-        if self.count > self.GENERATION_LENGTH:
-            self.count = 0
-            self.next_gen()
-    '''
-    Move to the next generation
-    '''
-    def next_gen(self):
-        self.orgs.sort(key=lambda x: x.energy, reverse=True)
-        new = []
-        for i in range(self.ELITISM):
-            new.append(organism(xrange = self.XRANGE, yrange = self.YRANGE, batch = self.organisms, genome = self.orgs[i].genome))
-            for j in range(int(self.ORGS/self.ELITISM)):
-                new.append(organism(xrange = self.XRANGE, yrange = self.YRANGE, batch = self.organisms, genome = self.mutate(self.orgs[i].genome)))
-        del(self.orgs)
-        self.orgs = new
-        del(self.f_array)
-        self.f_array = []
-        for i in range(self.FOOD_COUNT):
-            self.f_array.append(food(self.XRANGE,self.YRANGE, self.foods, energy = 1))
-        self.generation += 1
-        self.change_stats()
+        # Check if dead or pregnant
+        for i, org in enumerate(self.orgs):
+            if org.is_pregnant():
+                org_settings = {
+                'start': (org.x - 5, org.x + 5, org.y - 5, org.y + 5),
+                'xrange': self.settings['xrange'], 'yrange': self.settings['yrange'],
+                'batch': self.organisms, 'genome': self.mutate(org.genome), 'energy': org.energy/2
+            }
+                self.orgs.append(organism(org_settings))
+                org.energy -= org.energy/2
+            if org.is_dead():
+                del(self.orgs[i])
 
     '''
     Mutate a genome randomly
@@ -101,25 +103,41 @@ class simulation:
         new = ''
         for i in genome:
             rand = random.random()
-            if rand < self.MUTATION_RATE:
+            if rand < self.settings['mutation_rate']:
                 i = random.choice(string.ascii_uppercase)
             new += i
         return new
-    
-    '''
-    Def: Update the stats that are presented on the screen
-    '''
-    def change_stats(self):
-        self.label = pyglet.text.Label(f'Gen: {self.generation}',
-                          font_name='Times New Roman',
-                          font_size=36,
-                          x=30, y=45,
-                          #anchor_x='center', anchor_y='center',
-                          color=(0,0,0,125))
-        self.time = pyglet.text.Label(f'Generation Time: {datetime.now()- self.start}',
-                          font_name='Times New Roman',
-                          font_size=12,
-                          x=30, y=30,
-                          #anchor_x='center', anchor_y='center',
-                          color=(0,0,0,125))
-        self.start = datetime.now()
+
+    def generate_food(self, food_type):
+        # Totally random food generation
+        if food_type == 0:
+            self.f_array.append(food(self.settings['xrange'],self.settings['yrange'], self.foods, 
+                        energy = FOOD_ENERGY))
+        # Food more present in the center of the box
+        if food_type == 1:
+            rand = random.random()
+            if rand < FOOD_SPARSE:
+                self.f_array.append(food(self.settings['xrange'],self.settings['yrange'], self.foods, 
+                            energy = FOOD_ENERGY))
+            else:
+                self.f_array.append(food((self.settings['xrange'][0] + TYPE_2, self.settings['xrange'][1] - TYPE_2),
+                            (self.settings['yrange'][0] + TYPE_2, self.settings['yrange'][1] - TYPE_2), self.foods,
+                            energy = FOOD_ENERGY))
+        
+        # Food more present in the corners
+        if food_type == 2:
+            rand = random.random()
+            if rand < FOOD_SPARSE:
+                self.f_array.append(food(self.settings['xrange'],self.settings['yrange'], self.foods, 
+                            energy = FOOD_ENERGY))
+            elif rand < FOOD_SPARSE + (1-FOOD_SPARSE)/4:
+                # Bottom Right
+                self.f_array.append(food((self.settings['xrange'][0] + TYPE_2, self.settings['xrange'][1] - TYPE_2),
+                            (self.settings['yrange'][0] + TYPE_2, self.settings['yrange'][1] - TYPE_2), self.foods,
+                            energy = FOOD_ENERGY))
+            elif rand < FOOD_SPARSE + (1-FOOD_SPARSE)/2:
+                # Bottom Left
+            elif rand < FOOD_SPARSE + (1-FOOD_SPARSE)/4*3:
+                #Top Right
+            else:
+                # Top left

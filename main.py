@@ -19,6 +19,10 @@ IDEAS:
             environments
         2. Have poison foods, where if they eat a specific food type they will get posioned
     
+    Other
+        1. Instead of vision, give the cell some memory about which environments it was in the last few steps and
+            whether or not it found food, or even just its vision is the current environment in which is is in.
+    
     
 '''
 
@@ -28,9 +32,9 @@ import pyglet
 
 import sim
 
-GENE_LENGTH = 16
+GENE_LENGTH = 5
 ELITISM = 5
-MUTATION_RATE = 1/GENE_LENGTH*2
+MUTATION_RATE = 1/(GENE_LENGTH)
 GENERATION_LENGTH = 800
 ORG_RADIUS = 5
 FOOD_RADIUS = 2
@@ -39,9 +43,10 @@ WIDTH = 800
 HEIGHT= 800
 XRANGE = (100,700)
 YRANGE = (100,700)
-ORGS = 10
-FOOD_COUNT = 200
+ORGS = 30
+FOOD_COUNT = 500
 GRID_WIDTH, GRID_HEIGHT = XRANGE[1] - XRANGE[0], YRANGE[1]-YRANGE[0]
+FOOD_PROB = 1
 
 # Create the game window
 game_window = pyglet.window.Window(
@@ -83,7 +88,7 @@ def on_key_press(symbol, modifiers):
         pyglet.clock.schedule_interval(update, 1/SPEED)
         update_labels()
     elif symbol == key.UP:
-        GENERATION_LENGTH += 100
+        game.reset()
         update_labels()
     elif symbol == key.DOWN:
         GENERATION_LENGTH -= 100
@@ -131,8 +136,12 @@ fps = pyglet.text.Label(f'Speed: {SPEED}',
 # Make the mouse invisible and make the screen white
 game_window.set_mouse_visible(False)
 pyglet.gl.glClearColor(1, 1, 1, 1)
+
+settings = { 'food_prob': FOOD_PROB, 'gene_length': GENE_LENGTH, 'elitism': ELITISM, 'mutation_rate': MUTATION_RATE, 
+            'org_radius':ORG_RADIUS, 'food_radius':FOOD_RADIUS, 'xrange':XRANGE, 
+            'yrange':YRANGE, 'orgs':ORGS, 'food_count':FOOD_COUNT, 'height':HEIGHT, 'width':WIDTH }
     
-game = sim.simulation(0.01, GENE_LENGTH, ELITISM, MUTATION_RATE, GENERATION_LENGTH, ORG_RADIUS, FOOD_RADIUS, XRANGE, YRANGE, ORGS, FOOD_COUNT, HEIGHT, WIDTH)
+game = sim.simulation(settings)
 running = True
 pause = pyglet.text.Label('PAUSED',
                           font_name='Times New Roman',
