@@ -8,8 +8,8 @@ from items import organism, food
 FOOD_ENERGY = 100
 BIRTH_COST = 75
 START_ENERGY = 50
-food_type = 1
-TYPE_2 = 200
+food_type = 3
+TYPE_2 = 100
 TYPE_3 = 100
 FOOD_SPARSE = .1
 
@@ -71,16 +71,15 @@ class simulation:
             org.update(dt)
         
         # Have the organisms eat the food
-        count = 0
         for f in self.f_array:
             for org in self.orgs:
                 if f.x - 4 < org.x < f.x + 4 and  f.y - 4 < org.y < f.y + 4:
                     org.energy += f.energy
                     self.f_array.remove(f)
                     del(f)
-                    count+= 1
                     break
-        for i in range(count):
+        rand = random.random()
+        if rand <= self.settings['food_prob']:
             self.generate_food(food_type)
         
         # Check if dead or pregnant
@@ -131,13 +130,37 @@ class simulation:
                 self.f_array.append(food(self.settings['xrange'],self.settings['yrange'], self.foods, 
                             energy = FOOD_ENERGY))
             elif rand < FOOD_SPARSE + (1-FOOD_SPARSE)/4:
-                # Bottom Right
-                self.f_array.append(food((self.settings['xrange'][0] + TYPE_2, self.settings['xrange'][1] - TYPE_2),
-                            (self.settings['yrange'][0] + TYPE_2, self.settings['yrange'][1] - TYPE_2), self.foods,
+                # Bottom Left
+                self.f_array.append(food((self.settings['xrange'][0], self.settings['xrange'][0] + TYPE_2),
+                            (self.settings['yrange'][0], self.settings['yrange'][0] + TYPE_2), self.foods,
                             energy = FOOD_ENERGY))
             elif rand < FOOD_SPARSE + (1-FOOD_SPARSE)/2:
-                # Bottom Left
+                # Bottom Right
+                self.f_array.append(food((self.settings['xrange'][1] - TYPE_2, self.settings['xrange'][1]),
+                            (self.settings['yrange'][0], self.settings['yrange'][0] + TYPE_2), self.foods,
+                            energy = FOOD_ENERGY))
             elif rand < FOOD_SPARSE + (1-FOOD_SPARSE)/4*3:
                 #Top Right
+                self.f_array.append(food((self.settings['xrange'][1] - TYPE_2, self.settings['xrange'][1]),
+                            (self.settings['yrange'][1] - TYPE_2, self.settings['yrange'][1]), self.foods,
+                            energy = FOOD_ENERGY))
             else:
                 # Top left
+                self.f_array.append(food((self.settings['xrange'][0], self.settings['xrange'][0] + TYPE_2),
+                            (self.settings['yrange'][1] - TYPE_2, self.settings['yrange'][1]), self.foods,
+                            energy = FOOD_ENERGY))
+            
+        elif food_type == 3:
+            array_x = [i for i in range(self.settings['xrange'][0] + 50, self.settings['xrange'][1] - 10, 150)]
+            array_y = [i for i in range(self.settings['yrange'][0] + 50, self.settings['yrange'][1] - 10, 150)]
+            rand_x = random.choice(array_x)
+            rand_y = random.choice(array_y)
+            rand = random.random()
+            if rand > 0.5:
+                self.f_array.append(food((rand_x - 5, rand_x +5),
+                            self.settings['yrange'], self.foods,
+                            energy = FOOD_ENERGY))
+            else:
+                self.f_array.append(food(self.settings['xrange'],
+                            (rand_y - 5, rand_y + 5), self.foods,
+                            energy = FOOD_ENERGY))

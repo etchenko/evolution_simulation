@@ -3,7 +3,7 @@ import random
 from brain import brain
 
 MAX_SPEED = 10
-BIRTH_ENERGY = 1000
+BIRTH_ENERGY = 500
 MOVE_ENERGY = 2
 BIRTH_TIME = 100
 
@@ -33,20 +33,30 @@ class organism(pyglet.shapes.Circle):
         self.xrange = settings['xrange']
         self.yrange = settings['yrange']
         self.birth_timer = 0
+        self.dir = 0
     
     '''
     Each time step, update the organism
     '''
     def update(self, state):
-        dir = self.brain.think(state)
-        if dir == 0:
+        self.dir += self.brain.think(state)
+        self.dir = self.dir%8
+        if self.dir == 0:
             self.move(self.velocity,0)
-        elif dir == 1:
+        elif self.dir == 1:
             self.move(0,self.velocity)
-        elif dir == 2:
+        elif self.dir == 2:
             self.move(-self.velocity,0)
-        elif dir == 3:
+        elif self.dir == 3:
             self.move(0,-self.velocity)
+        elif self.dir == 4:
+            self.move(self.velocity, self.velocity)
+        elif self.dir == 5:
+            self.move(-self.velocity, self.velocity)
+        elif self.dir == 6:
+            self.move(self.velocity, -self.velocity)
+        elif self.dir == 7:
+            self.move(-self.velocity, -self.velocity)
         self.birth_timer += 1
 
     '''

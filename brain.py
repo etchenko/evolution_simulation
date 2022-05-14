@@ -12,10 +12,10 @@ class brain:
             chars.append(ord(char) - 65)
 
         # Create the first instantiation of a 'brain'
-        self.probs = [chars[i]for i in range(len(chars) - 1)]
+        self.probs = [chars[i] for i in range(len(chars) - 1)]
         s = sum(self.probs)
         self.probs = [i/s for i in self.probs]
-        for i in range(1,4,1):
+        for i in range(1,8,1):
             self.probs[i] = self.probs[i] + self.probs[i-1]
 
     def think(self, state):
@@ -23,4 +23,4 @@ class brain:
         for i, prob in enumerate(self.probs):
             if rand < prob:
                 return i
-        return 3
+        return 8
