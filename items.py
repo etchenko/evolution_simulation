@@ -29,7 +29,7 @@ class organism(pyglet.shapes.Circle):
         speed += ord(self.genome[4]) - 65
         self.velocity = (speed/100)* MAX_SPEED
         self.energy = settings['energy']
-        self.brain = brain(self.genome[:12])
+        self.brain = brain(self.genome[:12], settings['dirs'])
         self.xrange = settings['xrange']
         self.yrange = settings['yrange']
         self.birth_timer = 0

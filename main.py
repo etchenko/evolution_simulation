@@ -27,15 +27,17 @@ IDEAS:
 '''
 
 from __future__ import division
+
+from numpy import average
 from pyglet.window import key
 import pyglet
+import matplotlib.pyplot as plt
 
 import sim
 
 GENE_LENGTH = 10
 ELITISM = 5
 MUTATION_RATE = 2/(GENE_LENGTH)
-GENERATION_LENGTH = 800
 ORG_RADIUS = 5
 FOOD_RADIUS = 2
 SPEED = 120
@@ -43,10 +45,12 @@ WIDTH = 800
 HEIGHT= 800
 XRANGE = (100,700)
 YRANGE = (100,700)
-ORGS = 30
-FOOD_COUNT = 1200
+ORGS = 50
+FOOD_COUNT = 500
 GRID_WIDTH, GRID_HEIGHT = XRANGE[1] - XRANGE[0], YRANGE[1]-YRANGE[0]
-FOOD_PROB = .1
+FOOD_PROB = .5
+FOOD_TYPE = 0
+DIRECTIONS = 3
 
 # Create the game window
 game_window = pyglet.window.Window(
@@ -54,6 +58,11 @@ game_window = pyglet.window.Window(
     height=HEIGHT,
     caption="Evolution Simulation"
 )
+
+settings = { 'food_prob': FOOD_PROB, 'gene_length': GENE_LENGTH, 'elitism': ELITISM, 'mutation_rate': MUTATION_RATE, 
+            'org_radius':ORG_RADIUS, 'food_radius':FOOD_RADIUS, 'xrange':XRANGE, 
+            'yrange':YRANGE, 'orgs':ORGS, 'food_count':FOOD_COUNT, 'height':HEIGHT, 'width':WIDTH,'food_type':FOOD_TYPE, 
+            'dirs': DIRECTIONS}
 
 '''
 What to do each time the game updates
@@ -74,7 +83,7 @@ What to do in the event of a keypress
 '''
 @game_window.event
 def on_key_press(symbol, modifiers):
-    global player_x, player_y, SPEED, running, GENERATION_LENGTH
+    global player_x, player_y, SPEED, running
     if symbol == key.LEFT:
         if SPEED > 2:
             SPEED = SPEED / 2
@@ -100,6 +109,53 @@ def on_key_press(symbol, modifiers):
         else:
             pyglet.clock.schedule_interval(update, 1/SPEED)
             running = True
+    elif symbol == key._1:
+        settings['food_type'] = 0
+        settings['mutation_rate'] = 2/(GENE_LENGTH)
+        settings['food_count'] = 500
+        settings['food_prob'] = .5
+        settings['orgs'] = 50
+        game.reset()
+    elif symbol == key._2:
+        settings['food_type'] = 1
+        settings['food_prob'] = .5
+        settings['food_count'] = 500
+        settings['mutation_rate'] = 2/(GENE_LENGTH)
+        game.reset()
+    elif symbol == key._3:
+        settings['food_type'] = 2
+        settings['mutation_rate'] = 2/(GENE_LENGTH)
+        game.reset()
+    elif symbol == key._4:
+        settings['food_type'] = 3
+        settings['mutation_rate'] = 4/(GENE_LENGTH)
+        game.reset()
+    elif symbol == key.P:
+        count = game.count
+        plot1 = plt.plot(count, label = 'Organism count')
+        plt.title('Simulation Organism Count')
+        plt.xlabel('Time (timesteps)')
+        plt.ylabel('Organisms')
+        plt.legend()
+        plt.yticks([])
+        plt.show(block=True)
+    elif symbol == key.T:
+        count = game.count
+        plot1 = plt.plot(count, label ='Organism count')
+        foods = game.food_count
+        org_av = average(count)
+        fo_av = average(foods)
+        scaling = fo_av/org_av
+        foods = [i/scaling for i in foods]
+        plot2 = plt.plot(foods, label = 'Food count')
+        plt.title('Simulation Organism and Food Count')
+        plt.xlabel('Time (timestamp)')
+        plt.ylabel('Organisms and Food Count')
+        plt.legend()
+        plt.yticks([])
+        plt.show(block=True)
+
+
 
 '''
 Update the labels shown in the game
@@ -107,11 +163,6 @@ Update the labels shown in the game
 def update_labels():
     global fps, GENERATION_LENGTH
     fps = pyglet.text.Label(f'Speed: {SPEED}',
-                          font_name='Times New Roman',
-                          font_size=12,
-                          x=30, y=15,
-                          color=(0,0,0,125))
-    generation_length = pyglet.text.Label(f'Gen Length: {GENERATION_LENGTH}',
                           font_name='Times New Roman',
                           font_size=12,
                           x=30, y=15,
@@ -136,10 +187,6 @@ fps = pyglet.text.Label(f'Speed: {SPEED}',
 # Make the mouse invisible and make the screen white
 game_window.set_mouse_visible(False)
 pyglet.gl.glClearColor(1, 1, 1, 1)
-
-settings = { 'food_prob': FOOD_PROB, 'gene_length': GENE_LENGTH, 'elitism': ELITISM, 'mutation_rate': MUTATION_RATE, 
-            'org_radius':ORG_RADIUS, 'food_radius':FOOD_RADIUS, 'xrange':XRANGE, 
-            'yrange':YRANGE, 'orgs':ORGS, 'food_count':FOOD_COUNT, 'height':HEIGHT, 'width':WIDTH }
     
 game = sim.simulation(settings)
 running = True

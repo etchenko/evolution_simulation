@@ -8,8 +8,7 @@ from items import organism, food
 FOOD_ENERGY = 100
 BIRTH_COST = 75
 START_ENERGY = 50
-food_type = 3
-TYPE_2 = 100
+TYPE_2 = 200
 TYPE_3 = 100
 FOOD_SPARSE = .1
 
@@ -24,6 +23,8 @@ class simulation:
         self.f_array = []
         # Add organisms to the simulation
         self.reset()
+        self.count = []
+        self.food_count = []
 
     '''
     Reset the simulation
@@ -37,11 +38,13 @@ class simulation:
                 'start': (self.settings['xrange'][0], self.settings['xrange'][1], 
                         self.settings['yrange'][0], self.settings['yrange'][1]),
                 'xrange': self.settings['xrange'], 'yrange': self.settings['yrange'],
-                'batch': self.organisms, 'genome': genes, 'energy': START_ENERGY
+                'batch': self.organisms, 'genome': genes, 'energy': START_ENERGY, 'dirs':self.settings['dirs']
             }
             self.orgs.append(organism(org_settings))
         for i in range(self.settings['food_count']):
-            self.generate_food(food_type)
+            self.generate_food(self.settings['food_type'])
+            self.count = []
+            self.food_count = []
 
     '''
     Draw the simulation
@@ -65,7 +68,8 @@ class simulation:
             y = org.y
             #state[y][x] = 2
         '''
-
+        self.count.append(len(self.orgs))
+        self.food_count.append(len(self.f_array))
         # Update the position of the organisms
         for org in self.orgs:
             org.update(dt)
@@ -80,7 +84,7 @@ class simulation:
                     break
         rand = random.random()
         if rand <= self.settings['food_prob']:
-            self.generate_food(food_type)
+            self.generate_food(self.settings['food_type'])
         
         # Check if dead or pregnant
         for i, org in enumerate(self.orgs):
@@ -88,7 +92,7 @@ class simulation:
                 org_settings = {
                 'start': (org.x - 5, org.x + 5, org.y - 5, org.y + 5),
                 'xrange': self.settings['xrange'], 'yrange': self.settings['yrange'],
-                'batch': self.organisms, 'genome': self.mutate(org.genome), 'energy': org.energy/2
+                'batch': self.organisms, 'genome': self.mutate(org.genome), 'energy': org.energy/2, 'dirs':self.settings['dirs']
             }
                 self.orgs.append(organism(org_settings))
                 org.energy -= org.energy/2
@@ -151,16 +155,16 @@ class simulation:
                             energy = FOOD_ENERGY))
             
         elif food_type == 3:
-            array_x = [i for i in range(self.settings['xrange'][0] + 50, self.settings['xrange'][1] - 10, 150)]
-            array_y = [i for i in range(self.settings['yrange'][0] + 50, self.settings['yrange'][1] - 10, 150)]
+            array_x = [i for i in range(self.settings['xrange'][0] + 50, self.settings['xrange'][1] - 10, 350)]
+            array_y = [i for i in range(self.settings['yrange'][0] + 50, self.settings['yrange'][1] - 10, 350)]
             rand_x = random.choice(array_x)
             rand_y = random.choice(array_y)
             rand = random.random()
             if rand > 0.5:
-                self.f_array.append(food((rand_x - 5, rand_x +5),
+                self.f_array.append(food((rand_x - 20, rand_x +20),
                             self.settings['yrange'], self.foods,
                             energy = FOOD_ENERGY))
             else:
                 self.f_array.append(food(self.settings['xrange'],
-                            (rand_y - 5, rand_y + 5), self.foods,
+                            (rand_y - 20, rand_y + 20), self.foods,
                             energy = FOOD_ENERGY))
