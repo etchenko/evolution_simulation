@@ -1,5 +1,5 @@
 # Evolution Simulation
-![An image of the simulator screen](https://github.com/etchenko/evolution_simulation/simulation.png)
+![An image of the simulator screen](https://github.com/etchenko/evolution_simulation/blob/main/simulation.jpg?raw=true)
 This is an evolution simulator creating as a final project for the Computational Biology course at AIT Budapest during Spring 2022.
 # Installation
 The only requirements to run this project is to have Python 3.9 on your machine, as well as the matplotlib and pyglet dependencies, which can be installed using pip
