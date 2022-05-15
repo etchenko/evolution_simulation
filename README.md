@@ -1,6 +1,6 @@
 # Evolution Simulation
 
-<img src="https://github.com/etchenko/evolution_simulation/blob/main/simulation.jpg?raw=true" width="200" height="200">
+<img src="https://github.com/etchenko/evolution_simulation/blob/main/simulation.jpg?raw=true" width="300" height="300" class="center">
 
 This is an evolution simulator creating as a final project for the Computational Biology course at AIT Budapest during Spring 2022.
 # Installation
