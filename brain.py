@@ -9,7 +9,7 @@ class brain:
         self.genome = genome
         chars = []
         for char in genome:
-            chars.append(ord(char) - 65)
+            chars.append(ord(char) - 66)
 
         # Create the first instantiation of a 'brain'
         self.probs = [chars[i] for i in range(len(chars) - 1)]

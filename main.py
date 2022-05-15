@@ -111,7 +111,7 @@ def on_key_press(symbol, modifiers):
             running = True
     elif symbol == key._1:
         settings['food_type'] = 0
-        settings['mutation_rate'] = 2/(GENE_LENGTH)
+        settings['mutation_rate'] = 10/((GENE_LENGTH))
         settings['food_count'] = 500
         settings['food_prob'] = .5
         settings['orgs'] = 50
@@ -128,7 +128,7 @@ def on_key_press(symbol, modifiers):
         game.reset()
     elif symbol == key._4:
         settings['food_type'] = 3
-        settings['mutation_rate'] = 4/(GENE_LENGTH)
+        settings['mutation_rate'] = 2/(GENE_LENGTH)
         game.reset()
     elif symbol == key.P:
         count = game.count
